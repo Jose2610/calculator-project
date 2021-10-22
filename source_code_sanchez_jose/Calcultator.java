@@ -133,10 +133,136 @@ public class Calcultator {
         System.out.println("RPN (computed): " + rpnComputed);
 
         // Testing computeExpression
-        //double result = computeExpression(rpnComputed);
-        //System.out.println("RPN Solution: " + result);
+        double result = computeExpression(rpnComputed);
+        System.out.println("RPN Solution: " + result);
     }
 
+
+    // computeExpression function takes the rpn expression and calculates it
+    public static double computeExpression(List<String> expression) {
+        List<String> basicOps = Arrays.asList("+", "-", "*", "/", "^");
+        List<String> trigOps = Arrays.asList("sin", "cos", "tan", "cot", "arcsin", "arccos", "arctan", "arcctg");
+        List<String> logOps = Arrays.asList("ln", "log");
+
+        List<String> copyExpression = new ArrayList<>();
+        copyExpression.addAll(expression);
+        double result = 0;
+        int index = 0;
+
+        while (copyExpression.size() > 1) {
+            // Initialize a variable temp to hold values
+            double temp = 0;
+            // If the next element is an operator
+            if (basicOps.contains(copyExpression.get(index))) {
+                // Do the operation
+                // If two numbers are present with an operator
+                if (index >= 2) {
+                    temp = basicComputation(Double.parseDouble(copyExpression.get(index-2)), Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                    copyExpression.set(index-2, Double.toString(temp));
+                    copyExpression.remove(index-1);
+                    copyExpression.remove(index-1);
+                    index = 0;
+                }
+                // If only one number is present with an operator
+                else if (index == 1) {
+                    temp = Double.parseDouble(copyExpression.get(index-1));
+                    copyExpression.set(index-1, Double.toString(temp));
+                    copyExpression.remove(index);
+                    index = 0;
+                }
+            }
+
+            else if (trigOps.contains(copyExpression.get(index))) {
+                temp = trigComputation(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                copyExpression.set(index-1, Double.toString(temp));
+                copyExpression.remove(index);
+                index = 0;
+            }
+            else if (logOps.contains(copyExpression.get(index))) {
+                temp = logComputations(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                copyExpression.set(index-1, Double.toString(temp));
+                copyExpression.remove(index);
+                index = 0;
+            }
+
+            index++;
+        }
+
+        return Double.parseDouble(copyExpression.get(0));
+    }
+
+    // basicComputation function
+    public static double basicComputation(double x, double y, String op) {
+        double result = 0;
+        if (op.equals("+")) {
+            result = x + y;
+        }
+        else if (op.equals("-")) {
+            result = x - y;
+        }
+        else if (op.equals("/")) {
+            if (y == 0) {
+                System.out.println("ERROR! CANNOT DIVIDE BY ZERO!");
+                System.exit(0);
+            }
+            else {
+                result = x / y;
+            }
+        }
+        else if (op.equals("*")) {
+            result = x * y;
+        }
+        else if (op.equals("^")) {
+            result = Math.pow(x, y);
+        }
+
+        return result;
+    }
+
+    // trigComputation function
+    public static double trigComputation(double x, String op) {
+        double result = 0;
+        if (op.equals("sin")) {
+            result = Math.sin(x);
+        }
+        else if (op.equals("cos")) {
+            result = Math.cos(x);
+        }
+        else if (op.equals("tan")) {
+            result = Math.tan(x);
+        }
+        else if (op.equals("cot")) {
+            double rads = Math.toRadians(x);
+            double tanA = Math.tan(rads);
+            result = 1.0 / tanA;
+        }
+        else if (op.equals("arcsin")) {
+            result = Math.asin(x);
+        }
+        else if (op.equals("arccos")) {
+            result = Math.acos(x);
+        }
+        else if (op.equals("arctan")) {
+            result = Math.atan(x);
+        }
+        else if (op.equals("arcctg")) {
+            double coTanA = 1.0 / (Math.tan(x));
+            result =  Math.atan(1/coTanA);
+        }
+        return result;
+    }
+
+    // logComputations functions
+    public static double logComputations(double x, String op) {
+        double result = 0;
+        if (op.equals("ln")) {
+            result = Math.log(x);
+        }
+        else {
+            result = Math.log10(x);
+        }
+        return result;
+    }
 
     // createExpression function will take a string expression created by the user and translate
     // it into a workable array list for the shunting yard algorithm
