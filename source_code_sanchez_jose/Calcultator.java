@@ -52,12 +52,12 @@ public class Calcultator {
     }
 
     // Create a Hash Map that stores a string as the key and a operator as its value 
-    final static Map<String, Operator> OPS = new HashMap<>();
+    final static Map<String, Operator> opList = new HashMap<>();
 
     // Fill OPS with keys (operator symbol) and values (operator attributes)
     static {
         for(Operator operator : Operator.values()) {
-            OPS.put(operator.symbol, operator);
+            opList.put(operator.symbol, operator);
         }
     }
 
@@ -73,45 +73,92 @@ public class Calcultator {
             // Loop throught the expressions one token/number/operator at a time
             for(String token : tokens) {
                 // If OPS contains a token, then go into the loop
-                if(OPS.containsKey(token)) {
+                if(opList.containsKey(token)) {
                     // While the operator stack is not empty AND the OPS map contains a key, continue loop
-                    while(!stack.isEmpty() && OPS.containsKey(stack.peek())) {
+                    while(!stack.isEmpty() && opList.containsKey(stack.peek())) {
                         // Create an instance of Operator
-                        Operator currOp = OPS.get(token); // Gets the current operator
-                        Operator topOp = OPS.get(stack.peek()); // Gets the top operator in the OPS map
+                        Operator currOp = opList.get(token); // Gets the current operator
+                        Operator topOp = opList.get(stack.peek()); // Gets the top operator in the opsList
                         
-                        // If 
+                        // If the current operator's associativity is left AND the current operator's precedence is less than or equal to the top operator in the opsList
+                        // OR the current operator's associativity is right AND the current operator's precedence is less than the top operator in the opsList
                         if((currOp.associativity == Associativity.LEFT && currOp.comparePrecedence(topOp) <= 0) || 
                             (currOp.associativity == Associativity.RIGHT && currOp.comparePrecedence(topOp) < 0)) {
+                                // Pop the operator stack and add it into the output
                                 output.add(stack.pop());
                                 continue;
                             }
+                            // Exit while loop
                             break;
                     }
+
+                    // Push the token into the operator stack
                     stack.push(token);
                 } 
+
+                // Check for left parenthesis
                 else if("(".equals(token)) {
+                    // Add the left parenthesis into the operator stack
                     stack.push(token);
                 }
 
+                // Check for right parenthesis
                 else if(")".equals(token)) {
+                    // Loop while the operator stack isn't empty
+                    // AND the top element in the operator stack doesn't equal a left parenthesis
                     while(!stack.isEmpty() && !stack.peek().equals("(")) {
+                        // Pop the operator stack and add it into the output 
+                        output.add(stack.pop());
+                    }
+
+                    // Pop the operator stack
+                    stack.pop();
+                }
+
+                // Check for left braces
+                else if("{".equals(token)) {
+                    stack.push(token);
+                }
+
+                // Check for right braces
+                else if("}".equals(token)) {
+                    while(!stack.isEmpty() && !stack.peek().equals("{")) {
                         output.add(stack.pop());
                     }
                     stack.pop();
                 }
 
+                // Check for left brackets
+                else if("[".equals(token)) {
+                    stack.push(token);
+                }
+
+                // Check for right brackets
+                else if("]".equals(token)) {
+                    while(!stack.isEmpty() && !stack.peek().equals("[")) {
+                        output.add(stack.pop());
+                    }
+                    stack.pop();
+                }
+
+                // If the token is not an operator, then it is a number
                 else {
+                    // Add number into output
                     output.add(token);
                 }
             }
 
+            // Loop while the operator stack isn't empty
             while(!stack.isEmpty()) {
+                // Pop the operator stack and add it into the output
                 output.add(stack.pop());
             }
 
+            // Return converted RPN expression
             return output;
         }
+
+        // Catch any NullPointerExceptions and return an error
         catch (NullPointerException e) {
             System.out.println("THERE WAS AN ERROR CONVERTING INFIX TO RPN. RETURNING NULL.");
         }
@@ -120,10 +167,10 @@ public class Calcultator {
 
     // Main function for calculator
     public static void main(String[] args) {
-        String given = "-5.78+-(4-2.23)+sin(0)*cos(1)/(1+tan(2*-ln(-3+2*(1.23+arcsin(1)))))";
-        //String test = "1.23+arcsin(1)";
+        //String given = "-5.78+-(4-2.23)+sin(0)*cos(1)/(1+tan(2*-ln(-3+2*(1.23+arcsin[1]))))";
+        String test = "sin(1)";
         //List<String> expected = List.of("1", "2", "+", "3", "4", "/", "5", "6", "+", "^", "*");
-        List<String> computed = createExpression(given);
+        List<String> computed = createExpression(test);
         List<String> rpnComputed = shuntingYard(computed);
 
         //System.out.println("Infix: " + given);
@@ -140,67 +187,96 @@ public class Calcultator {
 
     // computeExpression function takes the rpn expression and calculates it
     public static double computeExpression(List<String> expression) {
+        // Create a list of strings to hold various operators
         List<String> basicOps = Arrays.asList("+", "-", "*", "/", "^");
         List<String> trigOps = Arrays.asList("sin", "cos", "tan", "cot", "arcsin", "arccos", "arctan", "arcctg");
         List<String> logOps = Arrays.asList("ln", "log");
 
+        // Copy the original expression
         List<String> copyExpression = new ArrayList<>();
         copyExpression.addAll(expression);
-        double result = 0;
+
+        // Initialize the index variable
         int index = 0;
 
+        // Loop while the copied expresion has more than one element
         while (copyExpression.size() > 1) {
             // Initialize a variable temp to hold values
             double temp = 0;
-            // If the next element is an operator
+
+            // If the next element is an basic operator
             if (basicOps.contains(copyExpression.get(index))) {
                 // Do the operation
                 // If two numbers are present with an operator
                 if (index >= 2) {
+                    // Compute the basic operation
                     temp = basicComputation(Double.parseDouble(copyExpression.get(index-2)), Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                    // Index at -2 will have the result, while the two elements in front will be removed from the list
                     copyExpression.set(index-2, Double.toString(temp));
                     copyExpression.remove(index-1);
                     copyExpression.remove(index-1);
+                    // Reset the index
                     index = 0;
                 }
                 // If only one number is present with an operator
                 else if (index == 1) {
+                    // Ignore the operator and keep the number
                     temp = Double.parseDouble(copyExpression.get(index-1));
+                    // Index at -1 will have the result, while the element in front will be removed from the list
                     copyExpression.set(index-1, Double.toString(temp));
                     copyExpression.remove(index);
+                    // Reset the index
                     index = 0;
                 }
             }
 
+            // If their is a trig operator
             else if (trigOps.contains(copyExpression.get(index))) {
+                // Compute the trig operation
                 temp = trigComputation(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                // Index at -1 will have the result, while the element in front will be removed from the list
                 copyExpression.set(index-1, Double.toString(temp));
                 copyExpression.remove(index);
+                // Reset index
                 index = 0;
             }
+
+            // If their is a log operator
             else if (logOps.contains(copyExpression.get(index))) {
+                // Compute the log operation
                 temp = logComputations(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                // Index at -1 will have the result, while the element in front will be removed from the list
                 copyExpression.set(index-1, Double.toString(temp));
                 copyExpression.remove(index);
+                // Reset index
                 index = 0;
             }
 
             index++;
         }
 
+        // Return the result of the expression
         return Double.parseDouble(copyExpression.get(0));
     }
 
     // basicComputation function
     public static double basicComputation(double x, double y, String op) {
+        // Result will store the final computation
         double result = 0;
+
+        // Addition
         if (op.equals("+")) {
             result = x + y;
         }
+
+        // Subtraction
         else if (op.equals("-")) {
             result = x - y;
         }
+
+        // Division
         else if (op.equals("/")) {
+            // Check if the denominator is zero
             if (y == 0) {
                 System.out.println("ERROR! CANNOT DIVIDE BY ZERO!");
                 System.exit(0);
@@ -209,9 +285,13 @@ public class Calcultator {
                 result = x / y;
             }
         }
+
+        // Multiplication
         else if (op.equals("*")) {
             result = x * y;
         }
+
+        // Power
         else if (op.equals("^")) {
             result = Math.pow(x, y);
         }
@@ -221,46 +301,68 @@ public class Calcultator {
 
     // trigComputation function
     public static double trigComputation(double x, String op) {
+        // Result will store the final computation
         double result = 0;
+
+        // All trig functions will return in radians
+        // Sine
         if (op.equals("sin")) {
             result = Math.sin(x);
         }
+
+        // Cosine
         else if (op.equals("cos")) {
             result = Math.cos(x);
         }
+
+        // Tangent
         else if (op.equals("tan")) {
             result = Math.tan(x);
         }
+
+        // Cotangent
         else if (op.equals("cot")) {
-            double rads = Math.toRadians(x);
-            double tanA = Math.tan(rads);
-            result = 1.0 / tanA;
+            result = 1 / Math.tan(x);
         }
+
+        // Arcsine
         else if (op.equals("arcsin")) {
             result = Math.asin(x);
         }
+
+        // Arccosine
         else if (op.equals("arccos")) {
             result = Math.acos(x);
         }
+
+        // Arctangent
         else if (op.equals("arctan")) {
             result = Math.atan(x);
         }
+
+        // Arccotangent
         else if (op.equals("arcctg")) {
-            double coTanA = 1.0 / (Math.tan(x));
-            result =  Math.atan(1/coTanA);
+            result = Math.PI / 2 - Math.atan(x);
         }
+
         return result;
     }
 
     // logComputations functions
     public static double logComputations(double x, String op) {
+        // Result will store the final computation
         double result = 0;
+
+        // Natural Log
         if (op.equals("ln")) {
             result = Math.log(x);
         }
+
+        // Log Base 10
         else {
             result = Math.log10(x);
         }
+
         return result;
     }
 
@@ -268,7 +370,7 @@ public class Calcultator {
     // it into a workable array list for the shunting yard algorithm
     public static List<String> createExpression(String origin) {
         char[] tempOrigin = origin.toCharArray();
-        List<Character> operators = Arrays.asList('+', '-', '/', '*', '(', ')', '^');
+        List<Character> operators = Arrays.asList('+', '-', '/', '*', '(', ')', '{', '}', '[', ']', '^');
         List<String> result = new ArrayList<>();
 
         // Temparary variable to hold numbers
