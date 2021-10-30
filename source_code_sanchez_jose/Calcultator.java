@@ -165,23 +165,78 @@ public class Calcultator {
         return null;
     }
 
+    // confirmExpression checks for several issues with rpn expression given
+    public static void confirmExpression(List<String> exp) {
+        // Variables to test
+        List<String> ops = Arrays.asList("(", ")", "[", "]", "{", "}");
+        try {
+            // Checking for any parenthasis, braces, or brackets
+            for (int i = 0; i < exp.size(); i++) {
+                if (ops.contains(exp.get(i))) {
+                    System.out.println("THERE WAS AN ERROR USING THE RPN EXPRESSION: Leftover parenthesis/brace/bracket.");
+                    System.exit(0);
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
     // Main function for calculator
     public static void main(String[] args) {
-        //String given = "-5.78+-(4-2.23)+sin(0)*cos(1)/(1+tan(2*-ln(-3+2*(1.23+arcsin[1]))))";
-        String test = "sin(1)";
-        //List<String> expected = List.of("1", "2", "+", "3", "4", "/", "5", "6", "+", "^", "*");
-        List<String> computed = createExpression(test);
-        List<String> rpnComputed = shuntingYard(computed);
+        // User Inputs
+        Scanner scan = new Scanner(System.in);
 
-        //System.out.println("Infix: " + given);
-        //System.out.println("RPN (expected): " + expected);
+        // Menu
+        System.out.println("----------JET CALCULATOR----------");
+        System.out.println("--SELECT AN OPTION FROM THE MENU--");
+        System.out.println("1. Compute");
+        System.out.println("2. Help");
+        System.out.println("3. Exit");
+        System.out.print("Selection: ");
+        
+        // Selecting option
+        String selection = scan.nextLine();
+        // Remove whitespace/non-characters and make selection lowercase
+        selection = selection.toLowerCase().replaceAll("\\s+","");
 
-        System.out.println("RPN (converted): " + computed);
-        System.out.println("RPN (computed): " + rpnComputed);
+        // Compute
+        if (selection.equals("1") || selection.equals("compute")) {
+            boolean repeat = false;
+            do {
+                System.out.println("\n\nCOMPUTATION");
+                System.out.print("Please enter your expression here: ");
+                String expression = scan.nextLine();
+                expression = expression.toLowerCase().replaceAll("\\s+","");
 
-        // Testing computeExpression
-        double result = computeExpression(rpnComputed);
-        System.out.println("RPN Solution: " + result);
+                // Convert
+                List<String> listExpression = createExpression(expression);
+                List<String> rpnExpression = shuntingYard(listExpression);
+                confirmExpression(rpnExpression);
+
+                // Calculate
+                double result = computeExpression(rpnExpression);
+
+                // Return result
+                System.out.println("Result: " + result);
+
+                // Do another expression
+                System.out.println("Would you like to do another expression? (Yes to repeat / Anything else for no)");
+
+                String choice = scan.nextLine();
+                choice = choice.toLowerCase().replaceAll("\\s+","");
+
+                // Check if choice is no or yes
+                if (choice.equals("yes")) {
+                    repeat = true;
+                }
+                else {
+                    repeat = false;
+                }
+            } while (repeat == true);
+        }
+        
     }
 
 
@@ -192,67 +247,76 @@ public class Calcultator {
         List<String> trigOps = Arrays.asList("sin", "cos", "tan", "cot", "arcsin", "arccos", "arctan", "arcctg");
         List<String> logOps = Arrays.asList("ln", "log");
 
-        // Copy the original expression
+        // Create copyExpression from the original expression
         List<String> copyExpression = new ArrayList<>();
-        copyExpression.addAll(expression);
 
-        // Initialize the index variable
-        int index = 0;
+        // Try and catch errors
+        try {
+            // Copy the original expression
+            copyExpression.addAll(expression);
 
-        // Loop while the copied expresion has more than one element
-        while (copyExpression.size() > 1) {
-            // Initialize a variable temp to hold values
-            double temp = 0;
+            // Initialize the index variable
+            int index = 0;
 
-            // If the next element is an basic operator
-            if (basicOps.contains(copyExpression.get(index))) {
-                // Do the operation
-                // If two numbers are present with an operator
-                if (index >= 2) {
-                    // Compute the basic operation
-                    temp = basicComputation(Double.parseDouble(copyExpression.get(index-2)), Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
-                    // Index at -2 will have the result, while the two elements in front will be removed from the list
-                    copyExpression.set(index-2, Double.toString(temp));
-                    copyExpression.remove(index-1);
-                    copyExpression.remove(index-1);
-                    // Reset the index
-                    index = 0;
+            // Loop while the copied expresion has more than one element
+            while (copyExpression.size() > 1) {
+                // Initialize a variable temp to hold values
+                double temp = 0;
+
+                // If the next element is an basic operator
+                if (basicOps.contains(copyExpression.get(index))) {
+                    // Do the operation
+                    // If two numbers are present with an operator
+                    if (index >= 2) {
+                        // Compute the basic operation
+                        temp = basicComputation(Double.parseDouble(copyExpression.get(index-2)), Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                        // Index at -2 will have the result, while the two elements in front will be removed from the list
+                        copyExpression.set(index-2, Double.toString(temp));
+                        copyExpression.remove(index-1);
+                        copyExpression.remove(index-1);
+                        // Reset the index
+                        index = 0;
+                    }
+                    // If only one number is present with an operator
+                    else if (index == 1) {
+                        // Ignore the operator and keep the number
+                        temp = Double.parseDouble(copyExpression.get(index-1));
+                        // Index at -1 will have the result, while the element in front will be removed from the list
+                        copyExpression.set(index-1, Double.toString(temp));
+                        copyExpression.remove(index);
+                        // Reset the index
+                        index = 0;
+                    }
                 }
-                // If only one number is present with an operator
-                else if (index == 1) {
-                    // Ignore the operator and keep the number
-                    temp = Double.parseDouble(copyExpression.get(index-1));
+
+                // If their is a trig operator
+                else if (trigOps.contains(copyExpression.get(index))) {
+                    // Compute the trig operation
+                    temp = trigComputation(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
                     // Index at -1 will have the result, while the element in front will be removed from the list
                     copyExpression.set(index-1, Double.toString(temp));
                     copyExpression.remove(index);
-                    // Reset the index
+                    // Reset index
                     index = 0;
                 }
-            }
 
-            // If their is a trig operator
-            else if (trigOps.contains(copyExpression.get(index))) {
-                // Compute the trig operation
-                temp = trigComputation(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
-                // Index at -1 will have the result, while the element in front will be removed from the list
-                copyExpression.set(index-1, Double.toString(temp));
-                copyExpression.remove(index);
-                // Reset index
-                index = 0;
-            }
+                // If their is a log operator
+                else if (logOps.contains(copyExpression.get(index))) {
+                    // Compute the log operation
+                    temp = logComputations(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
+                    // Index at -1 will have the result, while the element in front will be removed from the list
+                    copyExpression.set(index-1, Double.toString(temp));
+                    copyExpression.remove(index);
+                    // Reset index
+                    index = 0;
+                }
 
-            // If their is a log operator
-            else if (logOps.contains(copyExpression.get(index))) {
-                // Compute the log operation
-                temp = logComputations(Double.parseDouble(copyExpression.get(index-1)), copyExpression.get(index));
-                // Index at -1 will have the result, while the element in front will be removed from the list
-                copyExpression.set(index-1, Double.toString(temp));
-                copyExpression.remove(index);
-                // Reset index
-                index = 0;
+                index++;
             }
-
-            index++;
+        }
+        catch (NullPointerException n) {
+            System.out.println("THERE WAS AN ERROR FROM RPN EXPRESSION: RECEIVED A NULL EXPRESSION.");
+            System.exit(0);
         }
 
         // Return the result of the expression
@@ -402,18 +466,18 @@ public class Calcultator {
                     }
 
                     // Check for duplicates
-                    else if (tempOrigin[i] == tempOrigin[i-1]) {
-                        // Check if subtraction (just in case)
-                        if (tempOrigin[i] == '-') {
-                            result.remove(result.size()-1);
-                            result.add("+");
+                    else if (i-1 >= 0 && i-1 < tempOrigin.length) {
+                        // Check for duplicates
+                        if (tempOrigin[i] == tempOrigin[i-1]) {
+                            // Check if subtraction (just in case)
+                            if (tempOrigin[i] == '-') {
+                                result.remove(result.size()-1);
+                                result.add("+");
+                            }
+                            else {
+                                result.add(Character.toString(tempOrigin[i]));
+                            }
                         }
-                        // Check for parenthasis
-                        else if (tempOrigin[i] != '(' && tempOrigin[i] != ')'){
-                            System.out.println("REMOVED DUPLICATE OPERATIONS: " + tempOrigin[i]);
-                            continue;
-                        }
-
                         // Check for the rest
                         else {
                             result.add(Character.toString(tempOrigin[i]));
@@ -500,6 +564,10 @@ public class Calcultator {
             catch (Exception e) {
                 System.out.println("ERROR: " + tempOrigin[i]);
             }
+        }
+        // Check for leftover numbers
+        if (number.length() > 0) {
+            result.add(number);
         }
         return result;
     }
