@@ -25,6 +25,7 @@ public class Calcultator {
         DIVISION("/", Associativity.LEFT, 5),
         MULTIPLICATION("*", Associativity.LEFT, 5),
         POWER("^", Associativity.RIGHT, 10),
+        SQUAREROOT("sqrt", Associativity.RIGHT, 10),
         SINE("sin", Associativity.RIGHT, 10),
         COSINE("cos", Associativity.RIGHT, 10),
         TANGENT("tan", Associativity.RIGHT, 10),
@@ -273,7 +274,7 @@ public class Calcultator {
         // Create a list of strings to hold various operators
         List<String> basicOps = Arrays.asList("+", "-", "*", "/", "^");
         List<String> trigOps = Arrays.asList("sin", "cos", "tan", "cot", "arcsin", "arccos", "arctan", "arcctg");
-        List<String> logOps = Arrays.asList("ln", "log");
+        List<String> logOps = Arrays.asList("ln", "log", "sqrt");
 
         // Create copyExpression from the original expression
         List<String> copyExpression = new ArrayList<>();
@@ -365,7 +366,13 @@ public class Calcultator {
         }
 
         // Return the result of the expression
-        return Double.parseDouble(copyExpression.get(0));
+        double result = Double.parseDouble(copyExpression.get(0));
+        
+        if (Double.isNaN(result)) {
+            System.out.println("EXPRESSION IS NOT POSSIBLE, ENDED UP AS NOT A NUMBER.");
+            return result;
+        }
+        return result;
     }
 
     // basicComputation function
@@ -468,8 +475,13 @@ public class Calcultator {
         }
 
         // Log Base 10
-        else {
+        else if (op.equals("log")) {
             result = Math.log10(x);
+        }
+
+        // Square root, even though it isnt a log function...
+        else if (op.equals("sqrt")) {
+            result = Math.sqrt(x);
         }
 
         return result;
@@ -542,6 +554,13 @@ public class Calcultator {
                 }
 
                 // Checking for other operators that are longer than one character
+                // Checking for square root
+                else if (tempOrigin[i] == 's' && tempOrigin[i+1] == 'q' 
+                    && tempOrigin[i+2] == 'r' && tempOrigin[i+3] == 't') {
+                    result.add("sqrt");
+                    i += 3;
+                }
+
                 // Checking for sine
                 else if (tempOrigin[i] == 's' && tempOrigin[i+1] == 'i' && tempOrigin[i+2] == 'n') {
                     result.add("sin");
