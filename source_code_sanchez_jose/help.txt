@@ -1,0 +1,36 @@
+HELP
+HOW TO CALCULATE USING THIS CALCULATOR PROGRAM
+
+Calculate using infix notation
+For example: (1+7)/8^9+sin(1)
+
+FORMAT FOR OPERATIONS
+BASIC OPERATIONS
+Addition: 				+
+Subtraction: 			-
+Multiplication: 		*
+Division: 				/
+Power:					^
+
+TRIGONOMETRY OPERATIONS
+x is for the value
+Sine:					sin(x)
+Cosine: 				cos(x)
+Tangent: 				tan(x)
+Cotangent: 				cot(x)
+Arcsine: 				arcsin(x)
+Arccosine: 				arccos(x)
+Arctangent: 			arctan(x)
+Arccotangent: 			arcctg(x)
+
+LOGARITHMIC OPERATIONS
+x is for the value
+Base 10 Logarithm: 		log(x)
+Natural Logarithm: 		ln(x)
+
+PRECEDENCE MANIPULATION
+To prioritize certain operations, the use
+of PARENTHESIS (), BRACES {}, and BRACKETS []
+can be used
+
+For example, ([7-8]*6)/cos{0}

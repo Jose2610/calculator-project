@@ -5,6 +5,9 @@ Purpose: Calculator that does basic arthmetic/trigonometric/logarithmic operatio
 */
 
 // Importing Libraries
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.*;
 
 public class Calcultator {
@@ -184,59 +187,84 @@ public class Calcultator {
     }
 
     // Main function for calculator
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         // User Inputs
         Scanner scan = new Scanner(System.in);
+        boolean continuation = false;
 
         // Menu
-        System.out.println("----------JET CALCULATOR----------");
-        System.out.println("--SELECT AN OPTION FROM THE MENU--");
-        System.out.println("1. Compute");
-        System.out.println("2. Help");
-        System.out.println("3. Exit");
-        System.out.print("Selection: ");
-        
-        // Selecting option
-        String selection = scan.nextLine();
-        // Remove whitespace/non-characters and make selection lowercase
-        selection = selection.toLowerCase().replaceAll("\\s+","");
+        do {
+            System.out.println("----------RPN CALCULATOR----------");
+            System.out.println("--SELECT AN OPTION FROM THE MENU--");
+            System.out.println("1. Compute");
+            System.out.println("2. Help");
+            System.out.println("3. Exit");
+            System.out.print("Selection: ");
+            
+            // Selecting option
+            String selection = scan.nextLine();
+            // Remove whitespace/non-characters and make selection lowercase
+            selection = selection.toLowerCase().replaceAll("\\s+","");
 
-        // Compute
-        if (selection.equals("1") || selection.equals("compute")) {
-            boolean repeat = false;
-            do {
-                System.out.println("\n\nCOMPUTATION");
-                System.out.print("Please enter your expression here: ");
-                String expression = scan.nextLine();
-                expression = expression.toLowerCase().replaceAll("\\s+","");
+            // Compute
+            if (selection.equals("1") || selection.equals("compute")) {
+                boolean repeat = false;
+                do {
+                    System.out.println("\n\nCOMPUTATION");
+                    System.out.print("Please enter your expression here: ");
+                    String expression = scan.nextLine();
+                    expression = expression.toLowerCase().replaceAll("\\s+","");
 
-                // Convert
-                List<String> listExpression = createExpression(expression);
-                List<String> rpnExpression = shuntingYard(listExpression);
-                confirmExpression(rpnExpression);
+                    // Convert
+                    List<String> listExpression = createExpression(expression);
+                    List<String> rpnExpression = shuntingYard(listExpression);
+                    confirmExpression(rpnExpression);
 
-                // Calculate
-                double result = computeExpression(rpnExpression);
+                    // Calculate
+                    double result = computeExpression(rpnExpression);
 
-                // Return result
-                System.out.println("Result: " + result);
+                    // Return result
+                    System.out.println("Result: " + result);
 
-                // Do another expression
-                System.out.println("Would you like to do another expression? (Yes to repeat / Anything else for no)");
+                    // Do another expression
+                    System.out.println("Would you like to do another expression? (Yes to repeat / Anything else for no)");
 
-                String choice = scan.nextLine();
-                choice = choice.toLowerCase().replaceAll("\\s+","");
+                    String choice = scan.nextLine();
+                    choice = choice.toLowerCase().replaceAll("\\s+","");
 
-                // Check if choice is no or yes
-                if (choice.equals("yes")) {
-                    repeat = true;
+                    // Check if choice is no or yes
+                    if (choice.equals("yes")) {
+                        repeat = true;
+                    }
+                    else {
+                        repeat = false;
+                    }
+                } while (repeat == true);
+            }
+            
+            // For help
+            else if (selection.equals("2") || selection.equals("help")) {
+                // Read from help file
+                Scanner read = new Scanner(new BufferedReader(new FileReader("help.txt")));
+                while (read.hasNextLine()) {
+                    System.out.println(read.nextLine());
                 }
-                else {
-                    repeat = false;
-                }
-            } while (repeat == true);
-        }
-        
+                read.close();
+            }
+
+            // Exit program
+            else if (selection.equals("3") || selection.equals("exit")) {
+                System.out.println("CLOSING PROGRAM. THANK YOU FOR USING RPN CALCULATOR!");
+                continuation = true;
+            }
+
+            // Else if no selection was made or made incorrectly
+            else {
+                System.out.println("Sorry, but we didn't understand your request.");
+            }
+        } while (continuation == false);
+
+        scan.close();
     }
 
 
@@ -279,13 +307,30 @@ public class Calcultator {
                     }
                     // If only one number is present with an operator
                     else if (index == 1) {
-                        // Ignore the operator and keep the number
-                        temp = Double.parseDouble(copyExpression.get(index-1));
-                        // Index at -1 will have the result, while the element in front will be removed from the list
-                        copyExpression.set(index-1, Double.toString(temp));
-                        copyExpression.remove(index);
-                        // Reset the index
-                        index = 0;
+                        // For negative numbers
+                        if (copyExpression.get(index).equals("-")) {
+                            // Ignore the operator and keep the number
+                            temp = Double.parseDouble(copyExpression.get(index-1));
+                            // Index at -1 will have the result, while the element in front will be removed from the list
+                            copyExpression.set(index-1, Double.toString(temp));
+                            copyExpression.remove(index);
+                            // Reset the index
+                            index = 0;
+                        }
+                        // For positive numbers
+                        else if (copyExpression.get(index).equals("+")) {
+                            // Ignore the operator and keep the number
+                            temp = Double.parseDouble(copyExpression.get(index-1));
+                            // Index at -1 will have the result, while the element in front will be removed from the list
+                            copyExpression.set(index-1, Double.toString(temp));
+                            copyExpression.remove(index);
+                            // Reset the index
+                            index = 0;
+                        }
+                        else {
+                            System.out.println("ERROR, CANNOT PROCESS EXPRESSION AS THERE IS AN INVALID OPERATOR USED WITH ONLY ONE NUMBER.");
+                            System.exit(0);
+                        }
                     }
                 }
 
@@ -456,17 +501,8 @@ public class Calcultator {
 
                 // Check if token is contained in the operators list
                 else if (operators.contains(tempOrigin[i])) {
-                    // Check for unary subtraction symbol
-                    if (tempOrigin[i] == '-' && i == 0 && Character.isDigit(tempOrigin[i+1])) {
-                        number += "-"; 
-                    }
-                    // If unary negative symbol is not first, then try this one
-                    else if (tempOrigin[i] == '-' && operators.contains(tempOrigin[i-1]) && Character.isDigit(tempOrigin[i+1])) {
-                        number += "-"; 
-                    }
-
-                    // Check for duplicates
-                    else if (i-1 >= 0 && i-1 < tempOrigin.length) {
+                    // Check if i-1 isn't out of the array
+                    if (i-1 >= 0 && i-1 < tempOrigin.length) {
                         // Check for duplicates
                         if (tempOrigin[i] == tempOrigin[i-1]) {
                             // Check if subtraction (just in case)
@@ -478,14 +514,30 @@ public class Calcultator {
                                 result.add(Character.toString(tempOrigin[i]));
                             }
                         }
+
                         // Check for the rest
                         else {
                             result.add(Character.toString(tempOrigin[i]));
                         }
                     }
+
+                    // Else that the operator is either first
                     else {
-                        // If not, add that token to the result list
-                        result.add(Character.toString(tempOrigin[i]));
+                        // Check for unary subtraction symbol
+                        if (tempOrigin[i] == '-' && i == 0 && Character.isDigit(tempOrigin[i+1])) {
+                            number += "-"; 
+                        }
+
+                        // Check for double negative to positive
+                        else if (tempOrigin[i] == tempOrigin[i+1]) {
+                            result.add("+");
+                        }
+
+                        // Invalid operator
+                        else {
+                            System.out.println("ERROR, CANNOT ADD OPERATOR FIRST UNLESS A NEGATIVE OPERATOR");
+                            System.exit(0);
+                        }
                     }
                 }
 
@@ -562,7 +614,7 @@ public class Calcultator {
             }
             // Catch any errors in expression
             catch (Exception e) {
-                System.out.println("ERROR: " + tempOrigin[i]);
+                System.out.println("ERROR! REMOVED OPERATION: " + tempOrigin[i]);
             }
         }
         // Check for leftover numbers
