@@ -10,7 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
 
-public class Calcultator {
+public class Calculator {
 
     // This section will compute the shunting yard algorithm
     // This algorithm was created by Andrei Ciobanu
@@ -306,12 +306,13 @@ public class Calcultator {
                         // Reset the index
                         index = 0;
                     }
-                    // If only one number is present with an operator
+                    // If only one number is present followed by an operator
                     else if (index == 1) {
                         // For negative numbers
                         if (copyExpression.get(index).equals("-")) {
-                            // Ignore the operator and keep the number
+                            // Ignore the operator and keep the number and make it negative
                             temp = Double.parseDouble(copyExpression.get(index-1));
+                            temp = 0 - temp;
                             // Index at -1 will have the result, while the element in front will be removed from the list
                             copyExpression.set(index-1, Double.toString(temp));
                             copyExpression.remove(index);
@@ -527,6 +528,10 @@ public class Calcultator {
                             }
                         }
 
+                        else if (tempOrigin[i] == '-' && operators.contains(tempOrigin[i-1]) && Character.isDigit(tempOrigin[i+1])) {
+                            number += "-";
+                        }
+
                         // Check for the rest
                         else {
                             result.add(Character.toString(tempOrigin[i]));
@@ -543,6 +548,11 @@ public class Calcultator {
                         // Check for double negative to positive
                         else if (tempOrigin[i] == tempOrigin[i+1]) {
                             result.add("+");
+                        }
+
+                        // Check if proceeded by a parenthasis, etc.
+                        else if (tempOrigin[i] == '-' && tempOrigin[i+1] == '(') {
+                            result.add("-");
                         }
 
                         // Invalid operator
