@@ -361,14 +361,33 @@ public class Calculator {
                 index++;
             }
         }
+
+        // Catch for null expressions
         catch (NullPointerException n) {
             System.out.println("THERE WAS AN ERROR FROM RPN EXPRESSION: RECEIVED A NULL EXPRESSION.");
             System.exit(0);
         }
 
-        // Return the result of the expression
-        double result = Double.parseDouble(copyExpression.get(0));
+        // Catch for number formatting issues
+        catch (NumberFormatException n) {
+            System.out.println("THERE WAS AN ERROR FROM THE RESULT NUMBER: " + n);
+            System.exit(0);
+        }
+
+        // Initialize result as 0 for now
+        double result = 0;
+        try {
+            // Return the result of the expression
+            result = Double.parseDouble(copyExpression.get(0));
+        }
+
+        // Catch any issues such as more than one decimal used for number
+        catch (NumberFormatException n) {
+            System.out.println("THERE WAS AN ERROR FROM THE RESULT NUMBER: " + n);
+            System.exit(0);
+        }
         
+        // Check if the result is not a number
         if (Double.isNaN(result)) {
             System.out.println("EXPRESSION IS NOT POSSIBLE, ENDED UP AS NOT A NUMBER.");
             return result;
