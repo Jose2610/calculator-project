@@ -1,2 +1,2 @@
-# calculator-project-sanchez-jose
+# Calculator Project for Advanced Software Engineering Class
  Design and build a software (website/standalone app/cell phone app/etc.) which can do basic  arithmetic/trigonometric/logarithmic operations (“+”,”-“,”*”,”/”, ”^”, sin, cos, tan, cot, arcsin, arccos,  arctan,  arcctg,  ln,  log10)  with  real  numbers  involving  parenthesis,  brackets  and  curly  brackets.  The  calculator software should evaluate properly the mathematic formula based on the precedence of  the operators, the parenthesis and the aforementioned mathematical functions. 
